@@ -1,16 +1,21 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type User struct {
 	BaseModel
+	FullName            string
+	AvatarURL           string
+	Gender              string `gorm:"type:enum('male','female','other')"`
+	Birthday            *time.Time
+	Address             string
+	IdentityNumber      string
+	Bio                 string
+	Occupation          string
 	Status              string `gorm:"type:enum('active','inactive');default:'active'"`
 	EmailVerified       bool   `gorm:"default:false"`
 	LastLoginAt         *time.Time
 	Account             Account              `gorm:"foreignKey:UserID"`
-	UserInfo            UserInfo             `gorm:"foreignKey:UserID"`
 	Properties          []Property           `gorm:"foreignKey:OwnerID"`
 	Posts               []Post               `gorm:"foreignKey:AuthorID"`
 	WantedPosts         []WantedPost         `gorm:"foreignKey:AuthorID"`

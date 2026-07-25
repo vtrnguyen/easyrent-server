@@ -47,7 +47,9 @@ func (s *AuthService) Register(
 	}
 
 	user := &models.User{
-		Status: string(constants.UserStatusActive),
+		FullName: req.FullName,
+		Gender:   req.Gender,
+		Status:   string(constants.UserStatusActive),
 	}
 
 	account := &models.Account{
@@ -57,18 +59,12 @@ func (s *AuthService) Register(
 		Role:        string(constants.AccountRoleTenant),
 	}
 
-	userInfo := &models.UserInfo{
-		FullName: req.FullName,
-		Gender:   req.Gender,
-	}
-
 	tx := s.authRepository.BeginTransaction()
 
 	if err := s.authRepository.CreateUser(
 		tx,
 		user,
 		account,
-		userInfo,
 	); err != nil {
 		tx.Rollback()
 		return auth.AuthResponse{}, err

@@ -15,7 +15,6 @@ func (r *UserRepository) GetByID(
 
 	err := database.DB.
 		Preload("Account").
-		Preload("UserInfo").
 		First(&user, "id = ?", userID).
 		Error
 	if err != nil {
@@ -31,7 +30,7 @@ func (r *UserRepository) Update(
 	data map[string]interface{},
 ) error {
 	return database.DB.
-		Model(&models.UserInfo{}).
+		Model(&models.User{}).
 		Where("user_id = ?", userID).
 		Updates(data).
 		Error

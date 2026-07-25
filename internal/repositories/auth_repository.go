@@ -15,7 +15,6 @@ func (r *AuthRepository) CreateUser(
 	tx *gorm.DB,
 	user *models.User,
 	account *models.Account,
-	userInfo *models.UserInfo,
 ) error {
 	if err := tx.Create(user).Error; err != nil {
 		return err
@@ -24,12 +23,6 @@ func (r *AuthRepository) CreateUser(
 	account.UserID = user.ID
 
 	if err := tx.Create(account).Error; err != nil {
-		return err
-	}
-
-	userInfo.UserID = user.ID
-
-	if err := tx.Create(userInfo).Error; err != nil {
 		return err
 	}
 
@@ -74,7 +67,7 @@ func (r *AuthRepository) IsPhoneNumberExists(phoneNumber string, excludeUserID .
 func (r *AuthRepository) FindUserByLogin(
 	login string,
 ) (*models.User, error) {
-	var account models.User
+	var user models.User
 
 	err := database.DB.
 		Preload("Account").
@@ -86,14 +79,14 @@ func (r *AuthRepository) FindUserByLogin(
 					"email = ? OR phone_number = ?", login, login,
 				),
 		).
-		First(&account).
+		First(&user).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &account, nil
+	return &user, nil
 }
 
 // UpdateLastLoginAt updates the last login timestamp for a user.
