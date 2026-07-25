@@ -82,6 +82,8 @@ func (s *AuthService) Register(
 	return responses.AuthResponse{
 		AccessToken: accessToken,
 		UserID:      user.ID,
+		FullName:    user.FullName,
+		AvatarURL:   user.AvatarURL,
 		Role:        account.Role,
 		Status:      user.Status,
 		LastLoginAt: user.LastLoginAt,
@@ -121,6 +123,8 @@ func (s *AuthService) Login(
 	return responses.AuthResponse{
 		AccessToken: accessToken,
 		UserID:      user.ID,
+		FullName:    user.FullName,
+		AvatarURL:   user.AvatarURL,
 		Role:        user.Account.Role,
 		Status:      user.Status,
 		LastLoginAt: user.LastLoginAt,
