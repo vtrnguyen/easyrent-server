@@ -4,7 +4,7 @@ import (
 	"easyrent-server/internal/apperrors"
 	"easyrent-server/internal/constants"
 	"easyrent-server/internal/dto/requests"
-	"easyrent-server/internal/dto/responses/auth"
+	"easyrent-server/internal/dto/responses"
 	"easyrent-server/internal/models"
 	"easyrent-server/internal/repositories"
 	"easyrent-server/internal/utils"
@@ -24,26 +24,26 @@ func NewAuthService() *AuthService {
 // Register handles the user registration process. It checks for existing email and phone number,
 func (s *AuthService) Register(
 	req requests.RegisterRequest,
-) (auth.AuthResponse, error) {
+) (responses.AuthResponse, error) {
 	isEmailExists, err := s.authRepository.IsEmailExists(req.Email)
 	if err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 	if isEmailExists {
-		return auth.AuthResponse{}, apperrors.EmailAlreadyExists
+		return responses.AuthResponse{}, apperrors.EmailAlreadyExists
 	}
 
 	isPhoneNumberExists, err := s.authRepository.IsPhoneNumberExists(req.PhoneNumber)
 	if err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 	if isPhoneNumberExists {
-		return auth.AuthResponse{}, apperrors.PhoneAlreadyExists
+		return responses.AuthResponse{}, apperrors.PhoneAlreadyExists
 	}
 
 	hashedPassword, err := utils.Hash(req.Password)
 	if err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 
 	user := &models.User{
@@ -67,11 +67,11 @@ func (s *AuthService) Register(
 		account,
 	); err != nil {
 		tx.Rollback()
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 
 	accessToken, err := utils.GenerateAccessToken(
@@ -79,7 +79,7 @@ func (s *AuthService) Register(
 		account.Role,
 	)
 
-	return auth.AuthResponse{
+	return responses.AuthResponse{
 		AccessToken: accessToken,
 		UserID:      user.ID,
 		Role:        account.Role,
@@ -91,11 +91,11 @@ func (s *AuthService) Register(
 // Login handles the user login process. It verifies the provided email or phone number and password,
 func (s *AuthService) Login(
 	req requests.LoginRequest,
-) (auth.AuthResponse, error) {
+) (responses.AuthResponse, error) {
 	user, err := s.authRepository.
 		FindUserByLogin(req.Identifier)
 	if err != nil {
-		return auth.AuthResponse{}, apperrors.InvalidLoginCredentials
+		return responses.AuthResponse{}, apperrors.InvalidLoginCredentials
 	}
 
 	isPasswordValid := utils.Compare(
@@ -103,11 +103,11 @@ func (s *AuthService) Login(
 		user.Account.Password,
 	)
 	if !isPasswordValid {
-		return auth.AuthResponse{}, apperrors.InvalidLoginCredentials
+		return responses.AuthResponse{}, apperrors.InvalidLoginCredentials
 	}
 
 	if err := s.authRepository.UpdateLastLoginAt(user.ID); err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 
 	accessToken, err := utils.GenerateAccessToken(
@@ -115,10 +115,10 @@ func (s *AuthService) Login(
 		user.Account.Role,
 	)
 	if err != nil {
-		return auth.AuthResponse{}, err
+		return responses.AuthResponse{}, err
 	}
 
-	return auth.AuthResponse{
+	return responses.AuthResponse{
 		AccessToken: accessToken,
 		UserID:      user.ID,
 		Role:        user.Account.Role,

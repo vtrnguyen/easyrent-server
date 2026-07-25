@@ -62,3 +62,26 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 		nil,
 	)
 }
+
+// Search handles the search functionality for users based on the provided search criteria in the request body. It returns a list of users matching the search criteria.
+func (h *UserHandler) Search(c *gin.Context) {
+	var req requests.SearchRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HandleValidationError(c, err)
+		return
+	}
+
+	data, err := h.userService.Search(req)
+
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	utils.Success(
+		c,
+		"Search user successfully",
+		data,
+	)
+}

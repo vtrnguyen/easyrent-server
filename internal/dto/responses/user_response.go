@@ -1,8 +1,8 @@
-package users
+package responses
 
 import "time"
 
-type MeResponse struct {
+type UserResponse struct {
 	ID             string     `json:"id"`
 	Email          string     `json:"email"`
 	PhoneNumber    string     `json:"phone_number"`
@@ -18,4 +18,6 @@ type MeResponse struct {
 	Bio            string     `json:"bio"`
 	Occupation     string     `json:"occupation"`
 	LastLoginAt    *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }

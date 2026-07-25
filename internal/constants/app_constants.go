@@ -1,10 +1,11 @@
 package constants
 
 type UserStatus string
-
 type Gender string
-
 type AccountRole string
+type SortOrder string
+type FilterOperator string
+type FilterLogic string
 
 const (
 	UserStatusActive   UserStatus = "active"
@@ -17,4 +18,14 @@ const (
 	AccountRoleAdmin    AccountRole = "admin"
 	AccountRoleTenant   AccountRole = "tenant"
 	AccountRoleLandlord AccountRole = "landlord"
+
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+
+	FilterOperatorEquals   FilterOperator = "equals"
+	FilterOperatorContains FilterOperator = "contains"
+	FilterOperatorIn       FilterOperator = "in"
+
+	FilterLogicAnd FilterLogic = "and"
+	FilterLogicOr  FilterLogic = "or"
 )

@@ -40,7 +40,7 @@ func ParseValidationErrors(err error) []ValidationError {
 		message := getValidationMessage(fieldError)
 
 		validationErrors = append(validationErrors, ValidationError{
-			Field:   toSnakeCase(fieldError.Field()),
+			Field:   ToSnakeCase(fieldError.Field()),
 			Message: message,
 		})
 	}

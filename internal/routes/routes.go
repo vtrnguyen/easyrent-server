@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 
+	"easyrent-server/internal/constants"
 	"easyrent-server/internal/handlers"
 	"easyrent-server/internal/middlewares"
 )
@@ -29,6 +30,7 @@ func RegisterRoutes(router *gin.Engine) {
 		{
 			user.GET("/me", middlewares.AuthMiddleware(), userHandler.GetMe)
 			user.PUT("/me", middlewares.AuthMiddleware(), userHandler.UpdateMe)
+			user.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.Search)
 		}
 	}
 }
