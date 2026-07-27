@@ -12,12 +12,12 @@ type UserResponse struct {
 	FullName       string     `json:"full_name"`
 	AvatarURL      string     `json:"avatar_url"`
 	Gender         string     `json:"gender"`
-	Birthday       *time.Time `json:"birthday,omitempty"`
+	Birthday       *time.Time `json:"birthday"`
 	Address        string     `json:"address"`
 	IdentityNumber string     `json:"identity_number"`
 	Bio            string     `json:"bio"`
 	Occupation     string     `json:"occupation"`
-	LastLoginAt    *time.Time `json:"last_login_at,omitempty"`
+	LastLoginAt    *time.Time `json:"last_login_at"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
 }

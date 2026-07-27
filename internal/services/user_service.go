@@ -22,8 +22,8 @@ func NewUserService() *UserService {
 	}
 }
 
-// GetMe retrieves the authenticated user's information based on the provided user ID.
-func (s *UserService) GetMe(
+// GetByID retrieves a user's information based on the provided user ID.
+func (s *UserService) GetByID(
 	userID string,
 ) (*responses.UserResponse, error) {
 	user, err := s.userRepository.GetByID(userID)

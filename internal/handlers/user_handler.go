@@ -23,7 +23,7 @@ func NewUserHandler() *UserHandler {
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	data, err := h.userService.GetMe(userID)
+	data, err := h.userService.GetByID(userID)
 	if err != nil {
 		utils.HandleError(c, err)
 		return
@@ -32,6 +32,23 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	utils.Success(
 		c,
 		"Get me successfully",
+		data,
+	)
+}
+
+// GetByID retrieves a user's information based on the provided user ID in the request parameters.
+func (h *UserHandler) GetByID(c *gin.Context) {
+	userID := c.Param("id")
+
+	data, err := h.userService.GetByID(userID)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	utils.Success(
+		c,
+		"Get user detail successfully",
 		data,
 	)
 }

@@ -31,6 +31,7 @@ func RegisterRoutes(router *gin.Engine) {
 			user.GET("/me", middlewares.AuthMiddleware(), userHandler.GetMe)
 			user.PUT("/me", middlewares.AuthMiddleware(), userHandler.UpdateMe)
 			user.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.Search)
+			user.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.GetByID)
 		}
 	}
 }
