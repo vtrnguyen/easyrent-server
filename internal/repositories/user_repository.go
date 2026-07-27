@@ -56,6 +56,7 @@ func (r *UserRepository) Search(
 		"identity_number": "users.identity_number",
 		"occupation":      "users.occupation",
 		"created_at":      "users.created_at",
+		"last_login_at":   "users.last_login_at",
 	}
 
 	query := database.DB.
