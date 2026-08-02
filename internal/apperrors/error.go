@@ -22,6 +22,11 @@ var (
 		Status:  http.StatusConflict,
 	}
 
+	InvalidPassword = &AppError{
+		Message: "Invalid password",
+		Status:  http.StatusBadRequest,
+	}
+
 	InvalidLoginCredentials = &AppError{
 		Message: "Invalid email or phone number or password",
 		Status:  http.StatusUnauthorized,
@@ -45,5 +50,10 @@ var (
 	InvalidToken = &AppError{
 		Message: "Invalid token",
 		Status:  http.StatusUnauthorized,
+	}
+
+	PasswordConfirmationNotMatch = &AppError{
+		Message: "Password confirmation does not match",
+		Status:  http.StatusBadRequest,
 	}
 )

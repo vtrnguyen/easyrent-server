@@ -8,16 +8,21 @@ import (
 	"easyrent-server/internal/models"
 	"easyrent-server/internal/repositories"
 	"easyrent-server/internal/utils"
+	"errors"
+
+	"gorm.io/gorm"
 )
 
 type AuthService struct {
 	authRepository *repositories.AuthRepository
+	userRepository *repositories.UserRepository
 }
 
 // NewAuthService creates a new instance of AuthService with the necessary dependencies.
 func NewAuthService() *AuthService {
 	return &AuthService{
 		authRepository: &repositories.AuthRepository{},
+		userRepository: &repositories.UserRepository{},
 	}
 }
 
@@ -129,4 +134,33 @@ func (s *AuthService) Login(
 		Status:      user.Status,
 		LastLoginAt: user.LastLoginAt,
 	}, nil
+}
+
+// ChangePassword updates the authenticated user's password after verifying the current password.
+func (s *AuthService) ChangePassword(
+	userID string,
+	req requests.ChangePasswordRequest,
+) error {
+	if req.NewPassword != req.ConfirmNewPassword {
+		return apperrors.PasswordConfirmationNotMatch
+	}
+
+	user, err := s.userRepository.GetByID(userID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return apperrors.RecordNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	if !utils.ComparePassword(req.CurrentPassword, user.Account.Password) {
+		return apperrors.InvalidPassword
+	}
+
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	return s.authRepository.UpdatePassword(userID, hashedPassword)
 }

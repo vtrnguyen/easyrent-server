@@ -98,6 +98,17 @@ func (r *AuthRepository) UpdateLastLoginAt(userID string) error {
 		Error
 }
 
+// UpdatePassword updates the user's account password.
+func (r *AuthRepository) UpdatePassword(userID string, hashedPassword string) error {
+	return database.DB.Model(&models.Account{}).
+		Where("user_id = ?", userID).
+		Updates(map[string]interface{}{
+			"password":   hashedPassword,
+			"updated_at": gorm.Expr("NOW()"),
+		}).
+		Error
+}
+
 // BeginTransaction starts a new database transaction and returns the transaction object.
 func (r *AuthRepository) BeginTransaction() *gorm.DB {
 	return database.DB.Begin()

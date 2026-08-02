@@ -54,3 +54,21 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	utils.Success(c, "Logged in successfully", data)
 }
+
+// ChangePassword updates the authenticated user's password.
+func (h *AuthHandler) ChangePassword(c *gin.Context) {
+	userID := c.GetString("user_id")
+
+	var req requests.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HandleValidationError(c, err)
+		return
+	}
+
+	if err := h.authService.ChangePassword(userID, req); err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	utils.Success(c, "Changed password successfully", nil)
+}
