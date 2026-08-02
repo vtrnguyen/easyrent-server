@@ -4,9 +4,31 @@ import (
 	"easyrent-server/internal/database"
 	"easyrent-server/internal/dto/requests"
 	"easyrent-server/internal/models"
+
+	"gorm.io/gorm"
 )
 
 type UserRepository struct{}
+
+// Create creates a new user with account information using a database transaction.
+func (r *UserRepository) Create(
+	user *models.User,
+	account *models.Account,
+) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+
+		account.UserID = user.ID
+
+		if err := tx.Create(account).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
 
 // GetByID retrieves a user by their ID, including their associated account and user info.
 func (r *UserRepository) GetByID(

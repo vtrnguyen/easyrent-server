@@ -8,10 +8,16 @@ import (
 
 	"easyrent-server/internal/database"
 	"easyrent-server/internal/routes"
+	"easyrent-server/internal/services"
+	"easyrent-server/internal/workers"
 )
 
 func main() {
 	database.Connect()
+
+	emailService := services.NewEmailService()
+
+	workers.StartEmailWorker(emailService)
 
 	router := gin.Default()
 

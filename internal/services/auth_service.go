@@ -41,7 +41,7 @@ func (s *AuthService) Register(
 		return responses.AuthResponse{}, apperrors.PhoneAlreadyExists
 	}
 
-	hashedPassword, err := utils.Hash(req.Password)
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return responses.AuthResponse{}, err
 	}
@@ -100,7 +100,7 @@ func (s *AuthService) Login(
 		return responses.AuthResponse{}, apperrors.InvalidLoginCredentials
 	}
 
-	isPasswordValid := utils.Compare(
+	isPasswordValid := utils.ComparePassword(
 		req.Password,
 		user.Account.Password,
 	)

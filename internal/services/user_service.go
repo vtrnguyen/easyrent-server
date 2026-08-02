@@ -4,22 +4,121 @@ import (
 	"easyrent-server/internal/apperrors"
 	"easyrent-server/internal/dto/requests"
 	"easyrent-server/internal/dto/responses"
+	"easyrent-server/internal/models"
 	"easyrent-server/internal/repositories"
+	email "easyrent-server/internal/shared/job"
 	"easyrent-server/internal/utils"
 	"errors"
+	"fmt"
+	"mime/multipart"
 
 	"gorm.io/gorm"
 )
 
 type UserService struct {
 	userRepository *repositories.UserRepository
+	authRepository *repositories.AuthRepository
+	emailService   *EmailService
+	fileService    *FileService
 }
 
 // NewUserService creates a new instance of UserService with the necessary dependencies.
 func NewUserService() *UserService {
+	emailService := NewEmailService()
+	fileService := NewFileService()
+
 	return &UserService{
 		userRepository: &repositories.UserRepository{},
+		authRepository: &repositories.AuthRepository{},
+		emailService:   emailService,
+		fileService:    fileService,
 	}
+}
+
+// Create creates a new user based on the provided request data. It checks for existing email, hashes the password, and sends a welcome email to the user.
+func (s *UserService) Create(
+	req requests.CreateUserRequest,
+	avatar *multipart.FileHeader,
+) error {
+	avatarURL := ""
+
+	if avatar != nil {
+		url, err := s.fileService.SaveAvatar(avatar)
+
+		if err != nil {
+			return err
+		}
+
+		avatarURL = url
+	}
+
+	exists, err := s.authRepository.IsEmailExists(req.Email)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return apperrors.EmailAlreadyExists
+	}
+
+	password := utils.GeneratePassword(6)
+
+	hashedPassword, err := utils.HashPassword(password)
+
+	if err != nil {
+		return err
+	}
+
+	birthday, err := utils.ParseDate(req.Birthday)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Email: %s", req.Email)
+
+	user := models.User{
+		Status:         req.Status,
+		FullName:       req.FullName,
+		Gender:         req.Gender,
+		Birthday:       birthday,
+		Occupation:     req.Occupation,
+		IdentityNumber: req.IdentityNumber,
+		Address:        req.Address,
+		Bio:            req.Bio,
+		AvatarURL:      avatarURL,
+	}
+
+	account := models.Account{
+		Email:       req.Email,
+		PhoneNumber: req.PhoneNumber,
+		Password:    hashedPassword,
+		Role:        req.Role,
+	}
+
+	err = s.userRepository.Create(
+		&user,
+		&account,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	email.Queue <- email.Job{
+		To:       req.Email,
+		Subject:  "Welcome to EasyRent",
+		Template: "welcome.html",
+		Data: map[string]string{
+			"Name":     req.FullName,
+			"Email":    req.Email,
+			"Password": password,
+			"LoginURL": "http://localhost:3000/auth/login",
+		},
+	}
+
+	return nil
 }
 
 // GetByID retrieves a user's information based on the provided user ID.

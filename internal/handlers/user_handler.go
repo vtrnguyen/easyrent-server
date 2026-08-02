@@ -4,6 +4,7 @@ import (
 	"easyrent-server/internal/dto/requests"
 	"easyrent-server/internal/services"
 	"easyrent-server/internal/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,38 @@ func NewUserHandler() *UserHandler {
 	return &UserHandler{
 		userService: services.NewUserService(),
 	}
+}
+
+// Create handles the creation of a new user based on the provided request data. It validates the request, calls the user service to create the user, and returns a success response if successful.
+func (h *UserHandler) Create(c *gin.Context) {
+	var req requests.CreateUserRequest
+	if err := c.ShouldBind(&req); err != nil {
+		utils.HandleValidationError(c, err)
+		return
+	}
+
+	file, err := c.FormFile("avatar")
+	if err != nil && err != http.ErrMissingFile {
+		utils.Error(
+			c,
+			http.StatusBadRequest,
+			"Invalid avatar",
+			nil,
+		)
+		return
+	}
+
+	err = h.userService.Create(req, file)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	utils.Success(
+		c,
+		"Created successfully",
+		nil,
+	)
 }
 
 // GetMe retrieves the authenticated user's information based on the user ID stored in the context.
