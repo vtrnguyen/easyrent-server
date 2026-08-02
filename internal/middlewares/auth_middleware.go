@@ -1,10 +1,10 @@
 package middlewares
 
 import (
-	"net/http"
 	"os"
 	"strings"
 
+	"easyrent-server/internal/apperrors"
 	"easyrent-server/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -16,13 +16,14 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(
-				http.StatusUnauthorized,
-				gin.H{
-					"success": false,
-					"message": "Unauthorized",
-				},
-			)
+			utils.HandleError(c, apperrors.Unauthorized)
+			c.Abort()
+			return
+		}
+
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			utils.HandleError(c, apperrors.InvalidToken)
+			c.Abort()
 			return
 		}
 
@@ -33,13 +34,18 @@ func AuthMiddleware() gin.HandlerFunc {
 		accessToken, err := jwt.ParseWithClaims(
 			tokenString,
 			claims,
-			func(accessToken *jwt.Token) (interface{}, error) {
+			func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, jwt.ErrTokenSignatureInvalid
+				}
+
 				return []byte(os.Getenv("JWT_SECRET")), nil
 			},
 		)
 
 		if err != nil || !accessToken.Valid {
-			utils.HandleError(c, err)
+			utils.HandleError(c, apperrors.InvalidToken)
+			c.Abort()
 			return
 		}
 

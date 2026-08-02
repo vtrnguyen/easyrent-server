@@ -36,4 +36,14 @@ var (
 		Message: "Record not found",
 		Status:  http.StatusNotFound,
 	}
+
+	Unauthorized = &AppError{
+		Message: "Unauthorized",
+		Status:  http.StatusUnauthorized,
+	}
+
+	InvalidToken = &AppError{
+		Message: "Invalid token",
+		Status:  http.StatusUnauthorized,
+	}
 )
