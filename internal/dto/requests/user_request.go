@@ -18,17 +18,17 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Email          string                `json:"email" binding:"required,email"`
-	PhoneNumber    string                `json:"phone_number" binding:"required"`
-	Role           string                `json:"role" binding:"required,oneof=tenant landlord admin"`
-	Status         string                `json:"status" binding:"omitempty,oneof=active inactive"`
-	FullName       string                `json:"fullname" binding:"required"`
-	Gender         string                `json:"gender" binding:"required,oneof=male female other"`
-	Birthday       string                `json:"birthday" binding:"omitempty,datetime=1900-01-01"`
-	Occupation     string                `json:"occupation" binding:"omitempty"`
-	IdentityNumber string                `json:"identity_number" binding:"omitempty"`
-	Address        string                `json:"address" binding:"omitempty"`
-	Bio            string                `json:"bio" binding:"omitempty"`
+	Email          string                `form:"email" binding:"required,email"`
+	PhoneNumber    string                `form:"phone_number" binding:"required"`
+	Role           string                `form:"role" binding:"required,oneof=tenant landlord admin"`
+	Status         string                `form:"status" binding:"omitempty,oneof=active inactive"`
+	FullName       string                `form:"full_name" binding:"required"`
+	Gender         string                `form:"gender" binding:"required,oneof=male female other"`
+	Birthday       string                `form:"birthday" binding:"omitempty"`
+	Occupation     string                `form:"occupation" binding:"omitempty"`
+	IdentityNumber string                `form:"identity_number" binding:"omitempty"`
+	Address        string                `form:"address" binding:"omitempty"`
+	Bio            string                `form:"bio" binding:"omitempty"`
 	Avatar         *multipart.FileHeader `form:"avatar"`
 }
 

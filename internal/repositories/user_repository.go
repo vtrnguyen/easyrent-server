@@ -48,15 +48,44 @@ func (r *UserRepository) GetByID(
 }
 
 // Update updates the user information for a given user ID with the provided data.
-func (r *UserRepository) Update(
+func (r *UserRepository) UpdateMe(
 	userID string,
 	data map[string]interface{},
 ) error {
 	return database.DB.
 		Model(&models.User{}).
-		Where("user_id = ?", userID).
+		Where("id = ?", userID).
 		Updates(data).
 		Error
+}
+
+// UpdateProfile updates both user and account data in a single transaction.
+func (r *UserRepository) UpdateProfile(
+	userID string,
+	userData map[string]interface{},
+	accountData map[string]interface{},
+) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		if len(userData) > 0 {
+			if err := tx.Model(&models.User{}).
+				Where("id = ?", userID).
+				Updates(userData).
+				Error; err != nil {
+				return err
+			}
+		}
+
+		if len(accountData) > 0 {
+			if err := tx.Model(&models.Account{}).
+				Where("user_id = ?", userID).
+				Updates(accountData).
+				Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // Search retrieves a list of users based on the provided search request, including filtering, sorting, and pagination.

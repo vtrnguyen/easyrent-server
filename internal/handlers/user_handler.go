@@ -52,6 +52,40 @@ func (h *UserHandler) Create(c *gin.Context) {
 	)
 }
 
+// Update updates a user's information for admin use.
+func (h *UserHandler) Update(c *gin.Context) {
+	userID := c.Param("id")
+
+	var req requests.UpdateUserRequest
+	if err := c.ShouldBind(&req); err != nil {
+		utils.HandleValidationError(c, err)
+		return
+	}
+
+	file, err := c.FormFile("avatar")
+	if err != nil && err != http.ErrMissingFile {
+		utils.Error(
+			c,
+			http.StatusBadRequest,
+			"Invalid avatar",
+			nil,
+		)
+		return
+	}
+
+	err = h.userService.UpdateByID(userID, req, file)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+
+	utils.Success(
+		c,
+		"Updated successfully",
+		nil,
+	)
+}
+
 // GetMe retrieves the authenticated user's information based on the user ID stored in the context.
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.GetString("user_id")

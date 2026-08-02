@@ -9,7 +9,6 @@ import (
 	email "easyrent-server/internal/shared/job"
 	"easyrent-server/internal/utils"
 	"errors"
-	"fmt"
 	"mime/multipart"
 
 	"gorm.io/gorm"
@@ -76,8 +75,6 @@ func (s *UserService) Create(
 		return err
 	}
 
-	fmt.Printf("Email: %s", req.Email)
-
 	user := models.User{
 		Status:         req.Status,
 		FullName:       req.FullName,
@@ -119,6 +116,81 @@ func (s *UserService) Create(
 	}
 
 	return nil
+}
+
+// UpdateByID updates a user's profile for admin use, including account fields and optional avatar.
+func (s *UserService) UpdateByID(
+	userID string,
+	req requests.UpdateUserRequest,
+	avatar *multipart.FileHeader,
+) error {
+	user, err := s.userRepository.GetByID(userID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return apperrors.RecordNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	if user.Account.Email != req.Email {
+		exists, err := s.authRepository.IsEmailExists(req.Email, userID)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return apperrors.EmailAlreadyExists
+		}
+	}
+
+	if user.Account.PhoneNumber != req.PhoneNumber {
+		exists, err := s.authRepository.IsPhoneNumberExists(req.PhoneNumber, userID)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return apperrors.PhoneAlreadyExists
+		}
+	}
+
+	avatarURL := user.AvatarURL
+	if avatar != nil {
+		url, err := s.fileService.SaveAvatar(avatar)
+		if err != nil {
+			return err
+		}
+		avatarURL = url
+	}
+
+	userData := map[string]interface{}{
+		"full_name":       req.FullName,
+		"gender":          req.Gender,
+		"address":         req.Address,
+		"identity_number": req.IdentityNumber,
+		"bio":             req.Bio,
+		"occupation":      req.Occupation,
+		"avatar_url":      avatarURL,
+	}
+
+	if req.Birthday != "" {
+		birthday, err := utils.ParseDate(req.Birthday)
+		if err != nil {
+			return err
+		}
+		userData["birthday"] = birthday
+	}
+
+	if req.Status != "" {
+		userData["status"] = req.Status
+	}
+
+	accountData := map[string]interface{}{
+		"email":        req.Email,
+		"phone_number": req.PhoneNumber,
+		"role":         req.Role,
+		"updated_at":   gorm.Expr("NOW()"),
+	}
+
+	return s.userRepository.UpdateProfile(userID, userData, accountData)
 }
 
 // GetByID retrieves a user's information based on the provided user ID.
@@ -173,7 +245,7 @@ func (s *UserService) UpdateMe(
 		"updated_at":      gorm.Expr("NOW()"),
 	}
 
-	return s.userRepository.Update(userID, updateData)
+	return s.userRepository.UpdateMe(userID, updateData)
 }
 
 // Search retrieves a paginated list of users based on the provided search criteria.
