@@ -18,7 +18,6 @@ type User struct {
 	Account             Account              `gorm:"foreignKey:UserID"`
 	Properties          []Property           `gorm:"foreignKey:OwnerID"`
 	Posts               []Post               `gorm:"foreignKey:AuthorID"`
-	WantedPosts         []WantedPost         `gorm:"foreignKey:AuthorID"`
 	RentalRequests      []RentalRequest      `gorm:"foreignKey:TenantID"`
 	LandlordContracts   []Contract           `gorm:"foreignKey:LandlordID"`
 	TenantContracts     []Contract           `gorm:"foreignKey:TenantID"`

@@ -5,6 +5,7 @@ type Property struct {
 	OwnerID           string
 	PropertyTypeID    string
 	Title             string
+	Type              string
 	Description       string
 	Province          string
 	District          string
