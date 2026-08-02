@@ -3,6 +3,7 @@ package constants
 type UserStatus string
 type Gender string
 type AccountRole string
+type PropertyType string
 type SortOrder string
 type FilterOperator string
 type FilterLogic string
@@ -18,6 +19,11 @@ const (
 	AccountRoleAdmin    AccountRole = "admin"
 	AccountRoleTenant   AccountRole = "tenant"
 	AccountRoleLandlord AccountRole = "landlord"
+
+	PropertyTypeHouse      PropertyType = "house"
+	PropertyTypeRentalRoom PropertyType = "rental_room"
+	PropertyTypeApartment  PropertyType = "apartment"
+	PropertyTypeFlat       PropertyType = "flat"
 
 	SortOrderAsc  SortOrder = "asc"
 	SortOrderDesc SortOrder = "desc"
