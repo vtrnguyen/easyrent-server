@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -15,15 +16,16 @@ type FileService struct{}
 func NewFileService() *FileService {
 	return &FileService{}
 }
-// SaveAvatar saves the provided avatar file to the storage and returns the URL of the saved avatar.
-func (s *FileService) SaveAvatar(
+
+func (s *FileService) saveFileToFolder(
 	file *multipart.FileHeader,
-) (string,error) {
+	folder string,
+) (string, error) {
 	ext := filepath.Ext(file.Filename)
 	filename := uuid.New().String() + ext
 	path := filepath.Join(
 		"storage",
-		"avatars",
+		folder,
 		filename,
 	)
 
@@ -32,7 +34,7 @@ func (s *FileService) SaveAvatar(
 		0755,
 	)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	err = utils.SaveFile(
@@ -40,8 +42,44 @@ func (s *FileService) SaveAvatar(
 		path,
 	)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
-	return "/storage/avatars/"+filename,nil
+	return "/" + filepath.ToSlash(path), nil
+}
+
+// SaveAvatar saves the provided avatar file to the storage and returns the URL of the saved avatar.
+func (s *FileService) SaveAvatar(
+	file *multipart.FileHeader,
+) (string, error) {
+	return s.saveFileToFolder(file, "avatars")
+}
+
+// SavePropertyImage saves a property image file and returns its URL.
+func (s *FileService) SavePropertyImage(
+	file *multipart.FileHeader,
+) (string, error) {
+	return s.saveFileToFolder(file, filepath.Join("properties", "images"))
+}
+
+// SavePropertyVideo saves a property video file and returns its URL.
+func (s *FileService) SavePropertyVideo(
+	file *multipart.FileHeader,
+) (string, error) {
+	return s.saveFileToFolder(file, filepath.Join("properties", "videos"))
+}
+
+// DeleteByURL removes a stored file using its public URL.
+func (s *FileService) DeleteByURL(url string) error {
+	if url == "" {
+		return nil
+	}
+
+	path := filepath.FromSlash(strings.TrimPrefix(url, "/"))
+	err := os.Remove(path)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	return nil
 }

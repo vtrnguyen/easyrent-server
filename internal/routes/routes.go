@@ -18,6 +18,8 @@ func RegisterRoutes(router *gin.Engine) {
 
 	authHandler := handlers.NewAuthHandler()
 	userHandler := handlers.NewUserHandler()
+	propertyHandler := handlers.NewPropertyHandler()
+	utilityHandler := handlers.NewUtilityHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -35,6 +37,21 @@ func RegisterRoutes(router *gin.Engine) {
 			user.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.GetByID)
 			user.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.Update)
 			user.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), userHandler.Create)
+		}
+		property := api.Group("/property")
+		{
+			property.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.GetByID)
+			property.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Search)
+			property.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Create)
+			property.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Update)
+			property.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Delete)
+		}
+		utility := api.Group("/utility")
+		{
+			utility.GET("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), utilityHandler.GetAll)
+			utility.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Create)
+			utility.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Update)
+			utility.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Delete)
 		}
 	}
 }

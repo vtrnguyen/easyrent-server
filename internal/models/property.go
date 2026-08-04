@@ -2,8 +2,7 @@ package models
 
 type Property struct {
 	BaseModel
-	OwnerID           string
-	PropertyTypeID    string
+	OwnerID           string `gorm:"type:char(36);not null"`
 	Title             string
 	Type              string
 	Description       string
@@ -23,4 +22,6 @@ type Property struct {
 	WaterPrice        float64
 	Status            string          `gorm:"type:enum('available','reserved','rented', 'hidden', 'maintenance')"`
 	Images            []PropertyImage `gorm:"foreignKey:PropertyID"`
+	Videos            []PropertyVideo `gorm:"foreignKey:PropertyID"`
+	Utilities         []Utility       `gorm:"many2many:property_utilities;"`
 }

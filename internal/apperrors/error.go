@@ -52,6 +52,11 @@ var (
 		Status:  http.StatusUnauthorized,
 	}
 
+	Forbidden = &AppError{
+		Message: "Forbidden",
+		Status:  http.StatusForbidden,
+	}
+
 	PasswordConfirmationNotMatch = &AppError{
 		Message: "Password confirmation does not match",
 		Status:  http.StatusBadRequest,
