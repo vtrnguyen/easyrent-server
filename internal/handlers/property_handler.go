@@ -28,6 +28,7 @@ func (h *PropertyHandler) Create(c *gin.Context) {
 		utils.HandleValidationError(c, err)
 		return
 	}
+	req.UtilityIDs = c.PostFormArray("utilities")
 
 	form, err := c.MultipartForm()
 	if err != nil && err != http.ErrNotMultipart {
@@ -81,6 +82,10 @@ func (h *PropertyHandler) Update(c *gin.Context) {
 	if err := c.ShouldBind(&req); err != nil {
 		utils.HandleValidationError(c, err)
 		return
+	}
+	req.UtilityIDs = c.PostFormArray("utilities")
+	if req.UtilityIDs == nil {
+		req.UtilityIDs = []string{}
 	}
 
 	form, err := c.MultipartForm()

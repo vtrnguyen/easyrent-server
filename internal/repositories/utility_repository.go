@@ -21,6 +21,21 @@ func (r *UtilityRepository) GetAll() ([]models.Utility, error) {
 	return utilities, nil
 }
 
+// FindByIDs retrieves utilities by their IDs.
+func (r *UtilityRepository) FindByIDs(utilityIDs []string) ([]models.Utility, error) {
+	if len(utilityIDs) == 0 {
+		return []models.Utility{}, nil
+	}
+
+	var utilities []models.Utility
+	err := database.DB.Where("id IN ?", utilityIDs).Find(&utilities).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return utilities, nil
+}
+
 // Create creates a new utility in the database within a transaction.
 func (r *UtilityRepository) Create(utility *models.Utility) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {

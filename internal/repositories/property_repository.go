@@ -15,6 +15,7 @@ func (r *PropertyRepository) Create(
 	property *models.Property,
 	images []models.PropertyImage,
 	videos []models.PropertyVideo,
+	utilities []models.Utility,
 ) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(property).Error; err != nil {
@@ -31,6 +32,20 @@ func (r *PropertyRepository) Create(
 		for i := range videos {
 			videos[i].PropertyID = property.ID
 			if err := tx.Create(&videos[i]).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(utilities) > 0 {
+			propertyUtilities := make([]models.PropertyUtility, 0, len(utilities))
+			for _, utility := range utilities {
+				propertyUtilities = append(propertyUtilities, models.PropertyUtility{
+					PropertyID: property.ID,
+					UtilityID:  utility.ID,
+				})
+			}
+
+			if err := tx.Create(&propertyUtilities).Error; err != nil {
 				return err
 			}
 		}
@@ -64,6 +79,7 @@ func (r *PropertyRepository) Update(
 	data map[string]interface{},
 	images []models.PropertyImage,
 	videos []models.PropertyVideo,
+	utilities []models.Utility,
 ) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&models.Property{}).
@@ -98,6 +114,28 @@ func (r *PropertyRepository) Update(
 			for i := range videos {
 				videos[i].PropertyID = propertyID
 				if err := tx.Create(&videos[i]).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		if utilities != nil {
+			if err := tx.Where("property_id = ?", propertyID).
+				Delete(&models.PropertyUtility{}).
+				Error; err != nil {
+				return err
+			}
+
+			if len(utilities) > 0 {
+				propertyUtilities := make([]models.PropertyUtility, 0, len(utilities))
+				for _, utility := range utilities {
+					propertyUtilities = append(propertyUtilities, models.PropertyUtility{
+						PropertyID: propertyID,
+						UtilityID:  utility.ID,
+					})
+				}
+
+				if err := tx.Create(&propertyUtilities).Error; err != nil {
 					return err
 				}
 			}

@@ -16,6 +16,7 @@ import (
 
 type PropertyService struct {
 	propertyRepository *repositories.PropertyRepository
+	utilityRepository  *repositories.UtilityRepository
 	fileService        *FileService
 }
 
@@ -23,8 +24,26 @@ type PropertyService struct {
 func NewPropertyService() *PropertyService {
 	return &PropertyService{
 		propertyRepository: &repositories.PropertyRepository{},
+		utilityRepository:  &repositories.UtilityRepository{},
 		fileService:        NewFileService(),
 	}
+}
+
+func (s *PropertyService) loadUtilities(utilityIDs []string) ([]models.Utility, error) {
+	if utilityIDs == nil {
+		return nil, nil
+	}
+
+	utilities, err := s.utilityRepository.FindByIDs(utilityIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(utilities) != len(utilityIDs) {
+		return nil, apperrors.RecordNotFound
+	}
+
+	return utilities, nil
 }
 
 func (s *PropertyService) buildImages(
@@ -106,7 +125,7 @@ func (s *PropertyService) mapResponse(property models.Property) responses.Proper
 
 	utilities := make([]string, 0, len(property.Utilities))
 	for _, utility := range property.Utilities {
-		utilities = append(utilities, utility.Code)
+		utilities = append(utilities, utility.ID)
 	}
 
 	return responses.PropertyResponse{
@@ -186,6 +205,13 @@ func (s *PropertyService) Create(
 		return err
 	}
 
+	utilities, err := s.loadUtilities(req.UtilityIDs)
+	if err != nil {
+		s.cleanupFiles(imageURLs)
+		s.cleanupFiles(videoURLs)
+		return err
+	}
+
 	property := models.Property{
 		OwnerID:           ownerID,
 		Title:             req.Title,
@@ -208,7 +234,7 @@ func (s *PropertyService) Create(
 		Status:            req.Status,
 	}
 
-	err = s.propertyRepository.Create(&property, images, videos)
+	err = s.propertyRepository.Create(&property, images, videos, utilities)
 	if err != nil {
 		s.cleanupFiles(imageURLs)
 		s.cleanupFiles(videoURLs)
@@ -257,6 +283,13 @@ func (s *PropertyService) Update(
 		return err
 	}
 
+	utilities, err := s.loadUtilities(req.UtilityIDs)
+	if err != nil {
+		s.cleanupFiles(imageURLs)
+		s.cleanupFiles(videoURLs)
+		return err
+	}
+
 	updateData := map[string]interface{}{
 		"owner_id":            ownerID,
 		"title":               req.Title,
@@ -296,7 +329,7 @@ func (s *PropertyService) Update(
 		}
 	}
 
-	err = s.propertyRepository.Update(propertyID, updateData, images, videos)
+	err = s.propertyRepository.Update(propertyID, updateData, images, videos, utilities)
 	if err != nil {
 		s.cleanupFiles(imageURLs)
 		s.cleanupFiles(videoURLs)
