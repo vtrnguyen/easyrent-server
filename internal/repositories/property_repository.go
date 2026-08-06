@@ -79,6 +79,8 @@ func (r *PropertyRepository) Update(
 	data map[string]interface{},
 	images []models.PropertyImage,
 	videos []models.PropertyVideo,
+	removedImageIDs []string,
+	removedVideoIDs []string,
 	utilities []models.Utility,
 ) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {
@@ -89,13 +91,14 @@ func (r *PropertyRepository) Update(
 			return err
 		}
 
-		if images != nil {
-			if err := tx.Where("property_id = ?", propertyID).
-				Delete(&models.PropertyImage{}).
-				Error; err != nil {
+		if len(removedImageIDs) > 0 {
+			if err := tx.Where("property_id = ? AND id IN ?", propertyID, removedImageIDs).
+				Delete(&models.PropertyImage{}).Error; err != nil {
 				return err
 			}
+		}
 
+		if len(images) > 0 {
 			for i := range images {
 				images[i].PropertyID = propertyID
 				if err := tx.Create(&images[i]).Error; err != nil {
@@ -104,18 +107,34 @@ func (r *PropertyRepository) Update(
 			}
 		}
 
-		if videos != nil {
-			if err := tx.Where("property_id = ?", propertyID).
-				Delete(&models.PropertyVideo{}).
-				Error; err != nil {
+		if len(removedVideoIDs) > 0 {
+			if err := tx.Where("property_id = ? AND id IN ?", propertyID, removedVideoIDs).
+				Delete(&models.PropertyVideo{}).Error; err != nil {
 				return err
 			}
+		}
 
+		if len(videos) > 0 {
 			for i := range videos {
 				videos[i].PropertyID = propertyID
 				if err := tx.Create(&videos[i]).Error; err != nil {
 					return err
 				}
+			}
+		}
+
+		if len(images) > 0 || len(removedImageIDs) > 0 {
+			if err := tx.Model(&models.PropertyImage{}).Where("property_id = ?", propertyID).
+				UpdateColumn("is_thumbnail", false).Error; err != nil {
+				return err
+			}
+			var thumbnail models.PropertyImage
+			if err := tx.Where("property_id = ?", propertyID).Order("display_order ASC, created_at ASC").First(&thumbnail).Error; err == nil {
+				if err := tx.Model(&thumbnail).UpdateColumn("is_thumbnail", true).Error; err != nil {
+					return err
+				}
+			} else if err != gorm.ErrRecordNotFound {
+				return err
 			}
 		}
 

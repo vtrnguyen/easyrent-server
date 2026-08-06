@@ -244,7 +244,7 @@ func (s *PropertyService) Create(
 	return nil
 }
 
-// Update updates a property and optionally replaces its media files.
+// Update updates a property, appends new media, and removes only selected media.
 func (s *PropertyService) Update(
 	actorID string,
 	actorRole string,
@@ -313,31 +313,37 @@ func (s *PropertyService) Update(
 		"updated_at":          gorm.Expr("NOW()"),
 	}
 
-	var oldImageURLs []string
-	if len(imageFiles) > 0 {
-		oldImageURLs = make([]string, 0, len(property.Images))
-		for _, image := range property.Images {
-			oldImageURLs = append(oldImageURLs, image.ImageURL)
+	removedImageSet := make(map[string]struct{}, len(req.RemovedImageIDs))
+	for _, id := range req.RemovedImageIDs {
+		removedImageSet[id] = struct{}{}
+	}
+	removedImageURLs := make([]string, 0, len(req.RemovedImageIDs))
+	for _, image := range property.Images {
+		if _, removed := removedImageSet[image.ID]; removed {
+			removedImageURLs = append(removedImageURLs, image.ImageURL)
 		}
 	}
 
-	var oldVideoURLs []string
-	if len(videoFiles) > 0 {
-		oldVideoURLs = make([]string, 0, len(property.Videos))
-		for _, video := range property.Videos {
-			oldVideoURLs = append(oldVideoURLs, video.VideoURL)
+	removedVideoSet := make(map[string]struct{}, len(req.RemovedVideoIDs))
+	for _, id := range req.RemovedVideoIDs {
+		removedVideoSet[id] = struct{}{}
+	}
+	removedVideoURLs := make([]string, 0, len(req.RemovedVideoIDs))
+	for _, video := range property.Videos {
+		if _, removed := removedVideoSet[video.ID]; removed {
+			removedVideoURLs = append(removedVideoURLs, video.VideoURL)
 		}
 	}
 
-	err = s.propertyRepository.Update(propertyID, updateData, images, videos, utilities)
+	err = s.propertyRepository.Update(propertyID, updateData, images, videos, req.RemovedImageIDs, req.RemovedVideoIDs, utilities)
 	if err != nil {
 		s.cleanupFiles(imageURLs)
 		s.cleanupFiles(videoURLs)
 		return err
 	}
 
-	s.cleanupFiles(oldImageURLs)
-	s.cleanupFiles(oldVideoURLs)
+	s.cleanupFiles(removedImageURLs)
+	s.cleanupFiles(removedVideoURLs)
 
 	return nil
 }

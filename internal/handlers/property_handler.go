@@ -84,6 +84,8 @@ func (h *PropertyHandler) Update(c *gin.Context) {
 		return
 	}
 	req.UtilityIDs = c.PostFormArray("utilities")
+	req.RemovedImageIDs = c.PostFormArray("removed_image_ids")
+	req.RemovedVideoIDs = c.PostFormArray("removed_video_ids")
 	if req.UtilityIDs == nil {
 		req.UtilityIDs = []string{}
 	}

@@ -21,4 +21,6 @@ type PropertyRequest struct {
 	WaterPrice        float64  `form:"water_price" binding:"required"`
 	Status            string   `form:"status" binding:"required,oneof=available reserved rented hidden maintenance"`
 	UtilityIDs        []string `form:"utilities"`
+	RemovedImageIDs   []string `form:"removed_image_ids"`
+	RemovedVideoIDs   []string `form:"removed_video_ids"`
 }
