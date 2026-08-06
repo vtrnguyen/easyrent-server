@@ -20,6 +20,7 @@ func RegisterRoutes(router *gin.Engine) {
 	userHandler := handlers.NewUserHandler()
 	propertyHandler := handlers.NewPropertyHandler()
 	utilityHandler := handlers.NewUtilityHandler()
+	postHandler := handlers.NewPostHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -52,6 +53,14 @@ func RegisterRoutes(router *gin.Engine) {
 			utility.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Create)
 			utility.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Update)
 			utility.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Delete)
+		}
+		post := api.Group("/post", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleLandlord)))
+		{
+			post.POST("/search", postHandler.Search)
+			post.GET("/:id", postHandler.GetByID)
+			post.POST("", postHandler.Create)
+			post.PUT("/:id", postHandler.Update)
+			post.DELETE("/:id", postHandler.Delete)
 		}
 	}
 }

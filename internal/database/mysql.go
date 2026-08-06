@@ -7,8 +7,6 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"easyrent-server/internal/models"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -39,16 +37,6 @@ func Connect() {
 	}
 
 	DB = db
-
-	if err := DB.AutoMigrate(
-		&models.Property{},
-		&models.PropertyImage{},
-		&models.PropertyVideo{},
-		&models.PropertyUtility{},
-		&models.Utility{},
-	); err != nil {
-		log.Fatal(err)
-	}
 
 	fmt.Println("Connected to database successfully")
 }
