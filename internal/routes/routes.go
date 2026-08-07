@@ -21,6 +21,7 @@ func RegisterRoutes(router *gin.Engine) {
 	propertyHandler := handlers.NewPropertyHandler()
 	utilityHandler := handlers.NewUtilityHandler()
 	postHandler := handlers.NewPostHandler()
+	postFavoriteHandler := handlers.NewPostFavoriteHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -54,13 +55,20 @@ func RegisterRoutes(router *gin.Engine) {
 			utility.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Update)
 			utility.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin)), utilityHandler.Delete)
 		}
-		post := api.Group("/post", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleLandlord)))
+		postFavorite := api.Group("/post-favorite", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleTenant)))
 		{
-			post.POST("/search", postHandler.Search)
-			post.GET("/:id", postHandler.GetByID)
-			post.POST("", postHandler.Create)
-			post.PUT("/:id", postHandler.Update)
-			post.DELETE("/:id", postHandler.Delete)
+			postFavorite.GET("", postFavoriteHandler.Search)
+			postFavorite.GET("/ids", postFavoriteHandler.IDs)
+			postFavorite.POST("/:postId", postFavoriteHandler.Add)
+			postFavorite.DELETE("/:postId", postFavoriteHandler.Remove)
+		}
+		post := api.Group("/post", middlewares.AuthMiddleware())
+		{
+			post.GET("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord), string(constants.AccountRoleTenant)), postHandler.GetByID)
+			post.POST("/search", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Search)
+			post.POST("", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Create)
+			post.PUT("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Update)
+			post.DELETE("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Delete)
 		}
 	}
 }

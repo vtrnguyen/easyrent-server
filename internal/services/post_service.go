@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"easyrent-server/internal/apperrors"
+	"easyrent-server/internal/constants"
 	"easyrent-server/internal/dto/requests"
 	"easyrent-server/internal/dto/responses"
 	"easyrent-server/internal/models"
@@ -69,7 +70,7 @@ func (s *PostService) Create(actorID string, req requests.PostRequest) error {
 	return s.postRepository.Create(&post)
 }
 
-func (s *PostService) GetByID(actorID, id string) (*responses.PostResponse, error) {
+func (s *PostService) GetByID(actorID, actorRole, id string) (*responses.PostResponse, error) {
 	post, err := s.postRepository.GetByID(id)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, apperrors.RecordNotFound
@@ -77,7 +78,10 @@ func (s *PostService) GetByID(actorID, id string) (*responses.PostResponse, erro
 	if err != nil {
 		return nil, err
 	}
-	if post.AuthorID != actorID {
+	if actorRole == string(constants.AccountRoleLandlord) && post.AuthorID != actorID {
+		return nil, apperrors.Forbidden
+	}
+	if actorRole == string(constants.AccountRoleTenant) && post.Status != "published" {
 		return nil, apperrors.Forbidden
 	}
 	result := s.mapResponse(*post)
