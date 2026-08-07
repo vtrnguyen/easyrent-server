@@ -171,7 +171,10 @@ func (s *PropertyService) GetByID(
 		return nil, err
 	}
 
-	if actorRole != string(constants.AccountRoleAdmin) && property.OwnerID != actorID {
+	if actorRole == string(constants.AccountRoleLandlord) && property.OwnerID != actorID {
+		return nil, apperrors.Forbidden
+	}
+	if actorRole == string(constants.AccountRoleTenant) && property.Status != "available" {
 		return nil, apperrors.Forbidden
 	}
 

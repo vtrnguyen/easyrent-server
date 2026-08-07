@@ -22,6 +22,8 @@ func RegisterRoutes(router *gin.Engine) {
 	utilityHandler := handlers.NewUtilityHandler()
 	postHandler := handlers.NewPostHandler()
 	postFavoriteHandler := handlers.NewPostFavoriteHandler()
+	postInteractionHandler := handlers.NewPostInteractionHandler()
+	rentalRequestHandler := handlers.NewRentalRequestHandler()
 
 	api := router.Group("/api/v1")
 	{
@@ -42,7 +44,7 @@ func RegisterRoutes(router *gin.Engine) {
 		}
 		property := api.Group("/property")
 		{
-			property.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.GetByID)
+			property.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord), string(constants.AccountRoleTenant)), propertyHandler.GetByID)
 			property.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord), string(constants.AccountRoleTenant)), propertyHandler.Search)
 			property.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Create)
 			property.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Update)
@@ -64,11 +66,21 @@ func RegisterRoutes(router *gin.Engine) {
 		}
 		post := api.Group("/post", middlewares.AuthMiddleware())
 		{
+			post.POST("/published/search", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postHandler.SearchPublished)
+			post.GET("/:id/social", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postInteractionHandler.Social)
+			post.POST("/:id/like", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postInteractionHandler.Like)
+			post.DELETE("/:id/like", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postInteractionHandler.Unlike)
+			post.GET("/:id/comments", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postInteractionHandler.Comments)
+			post.POST("/:id/comments", middlewares.RequireRoles(string(constants.AccountRoleTenant)), postInteractionHandler.Comment)
 			post.GET("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord), string(constants.AccountRoleTenant)), postHandler.GetByID)
 			post.POST("/search", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Search)
 			post.POST("", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Create)
 			post.PUT("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Update)
 			post.DELETE("/:id", middlewares.RequireRoles(string(constants.AccountRoleLandlord)), postHandler.Delete)
+		}
+		rentalRequest := api.Group("/rental-request", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleTenant)))
+		{
+			rentalRequest.POST("", rentalRequestHandler.Create)
 		}
 	}
 }

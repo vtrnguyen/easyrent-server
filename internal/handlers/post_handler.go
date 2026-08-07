@@ -74,3 +74,17 @@ func (h *PostHandler) Search(c *gin.Context) {
 	}
 	utils.Success(c, "Search post successfully", data)
 }
+
+func (h *PostHandler) SearchPublished(c *gin.Context) {
+	var req requests.SearchRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.HandleValidationError(c, err)
+		return
+	}
+	data, err := h.postService.SearchPublished(req)
+	if err != nil {
+		utils.HandleError(c, err)
+		return
+	}
+	utils.Success(c, "Search published posts successfully", data)
+}

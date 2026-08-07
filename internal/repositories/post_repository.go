@@ -16,8 +16,22 @@ func (r *PostRepository) Create(post *models.Post) error {
 
 func (r *PostRepository) GetByID(id string) (*models.Post, error) {
 	var post models.Post
-	err := database.DB.Preload("Property").First(&post, "id = ?", id).Error
+	err := database.DB.Preload("Property.Images").First(&post, "id = ?", id).Error
 	return &post, err
+}
+
+func (r *PostRepository) SearchPublished(req requests.SearchRequest) ([]models.Post, int64, error) {
+	var posts []models.Post
+	var total int64
+	fieldMap := map[string]string{"property_id": "posts.property_id", "title": "posts.title", "published_at": "posts.published_at", "created_at": "posts.created_at"}
+	query := database.DB.Model(&models.Post{}).Where("posts.status = ?", "published")
+	query = database.ApplyFilters(query, req.Filters, fieldMap, req.FilterLogic)
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	query = database.ApplySorts(query, req.Sorts, fieldMap)
+	err := query.Preload("Property.Images").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Find(&posts).Error
+	return posts, total, err
 }
 
 func (r *PostRepository) Update(id string, data map[string]interface{}) error {
@@ -48,6 +62,6 @@ func (r *PostRepository) Search(req requests.SearchRequest, authorID string) ([]
 		return nil, 0, err
 	}
 	query = database.ApplySorts(query, req.Sorts, fieldMap)
-	err := query.Preload("Property").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Find(&posts).Error
+	err := query.Preload("Property.Images").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Find(&posts).Error
 	return posts, total, err
 }

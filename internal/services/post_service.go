@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"easyrent-server/internal/apperrors"
@@ -30,9 +31,30 @@ func (s *PostService) mapResponse(post models.Post) responses.PostResponse {
 		post.ContentType = "markdown"
 		content = post.MarkdownContent
 	}
+	thumbnailURL := ""
+	for _, image := range post.Property.Images {
+		if image.IsThumbnail {
+			thumbnailURL = image.ImageURL
+			break
+		}
+	}
+	if thumbnailURL == "" && len(post.Property.Images) > 0 {
+		thumbnailURL = post.Property.Images[0].ImageURL
+	}
+	address := strings.Join(filterNonEmpty([]string{post.Property.Address, post.Property.Ward, post.Property.District, post.Property.Province}), ", ")
 	return responses.PostResponse{ID: post.ID, PropertyID: post.PropertyID, AuthorID: post.AuthorID, Title: post.Title,
 		ContentType: post.ContentType, Content: content, Status: post.Status, PublishedAt: post.PublishedAt,
-		ExpiresAt: post.ExpiresAt, PropertyTitle: post.Property.Title, CreatedAt: post.CreatedAt}
+		ExpiresAt: post.ExpiresAt, PropertyTitle: post.Property.Title, PropertyPrice: post.Property.Price, PropertyArea: post.Property.Area, PropertyAddress: address, ThumbnailURL: thumbnailURL, CreatedAt: post.CreatedAt}
+}
+
+func filterNonEmpty(values []string) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	return result
 }
 
 func (s *PostService) ensurePropertyOwner(propertyID, actorID string) error {
@@ -47,6 +69,24 @@ func (s *PostService) ensurePropertyOwner(propertyID, actorID string) error {
 		return apperrors.Forbidden
 	}
 	return nil
+}
+
+func (s *PostService) SearchPublished(req requests.SearchRequest) (*responses.PaginatedResponse[responses.PostResponse], error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	posts, total, err := s.postRepository.SearchPublished(req)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]responses.PostResponse, 0, len(posts))
+	for _, post := range posts {
+		items = append(items, s.mapResponse(post))
+	}
+	return &responses.PaginatedResponse[responses.PostResponse]{Items: items, Total: total, Page: req.Page, Limit: req.Limit, TotalPages: utils.CalculateTotalPages(total, req.Limit)}, nil
 }
 
 func contentFields(contentType, content string) (string, string) {
