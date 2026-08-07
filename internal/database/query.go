@@ -41,6 +41,12 @@ func ApplyFilters(
 		case constants.FilterOperatorIn:
 			conditions = append(conditions, fmt.Sprintf("%s IN ?", column))
 			values = append(values, filter.Value)
+		case constants.FilterOperatorGreaterThanOrEqual:
+			conditions = append(conditions, fmt.Sprintf("%s >= ?", column))
+			values = append(values, filter.Value)
+		case constants.FilterOperatorLessThanOrEqual:
+			conditions = append(conditions, fmt.Sprintf("%s <= ?", column))
+			values = append(values, filter.Value)
 		}
 	}
 

@@ -28,9 +28,11 @@ const (
 	SortOrderAsc  SortOrder = "asc"
 	SortOrderDesc SortOrder = "desc"
 
-	FilterOperatorEquals   FilterOperator = "equals"
-	FilterOperatorContains FilterOperator = "contains"
-	FilterOperatorIn       FilterOperator = "in"
+	FilterOperatorEquals             FilterOperator = "equals"
+	FilterOperatorContains           FilterOperator = "contains"
+	FilterOperatorIn                 FilterOperator = "in"
+	FilterOperatorGreaterThanOrEqual FilterOperator = "greater_than_or_equal"
+	FilterOperatorLessThanOrEqual    FilterOperator = "less_than_or_equal"
 
 	FilterLogicAnd FilterLogic = "and"
 	FilterLogicOr  FilterLogic = "or"

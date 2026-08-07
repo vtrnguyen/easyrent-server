@@ -42,7 +42,7 @@ func RegisterRoutes(router *gin.Engine) {
 		property := api.Group("/property")
 		{
 			property.GET("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.GetByID)
-			property.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Search)
+			property.POST("/search", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord), string(constants.AccountRoleTenant)), propertyHandler.Search)
 			property.POST("", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Create)
 			property.PUT("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Update)
 			property.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RequireRoles(string(constants.AccountRoleAdmin), string(constants.AccountRoleLandlord)), propertyHandler.Delete)

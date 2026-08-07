@@ -401,11 +401,12 @@ func (s *PropertyService) Search(
 	}
 
 	ownerID := ""
-	if actorRole != string(constants.AccountRoleAdmin) {
+	if actorRole == string(constants.AccountRoleLandlord) {
 		ownerID = actorID
 	}
+	availableOnly := actorRole == string(constants.AccountRoleTenant)
 
-	properties, total, err := s.propertyRepository.Search(req, ownerID)
+	properties, total, err := s.propertyRepository.Search(req, ownerID, availableOnly)
 	if err != nil {
 		return nil, err
 	}

@@ -199,6 +199,7 @@ func (r *PropertyRepository) Delete(
 func (r *PropertyRepository) Search(
 	req requests.SearchRequest,
 	ownerID string,
+	availableOnly bool,
 ) ([]models.Property, int64, error) {
 	var properties []models.Property
 	var total int64
@@ -229,6 +230,9 @@ func (r *PropertyRepository) Search(
 	query := database.DB.Model(&models.Property{})
 	if ownerID != "" {
 		query = query.Where("owner_id = ?", ownerID)
+	}
+	if availableOnly {
+		query = query.Where("properties.status = ?", "available")
 	}
 
 	query = database.ApplyFilters(query, req.Filters, fieldMap, req.FilterLogic)
